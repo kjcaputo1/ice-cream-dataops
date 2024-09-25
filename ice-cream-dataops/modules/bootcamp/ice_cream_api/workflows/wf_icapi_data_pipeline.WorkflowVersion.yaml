@@ -1,0 +1,68 @@
+workflowExternalId: wf_icapi_data_pipeline
+version: '1'
+workflowDefinition:
+  description: 'Run tasks in sequence'
+  tasks:
+    - externalId: 'icapi_assets_extractor'
+      type: 'function'
+      parameters:
+        function:
+          externalId: 'icapi_assets_extractor'
+          data: {}
+        isAsyncComplete: false
+      name: 'Assets Extractor'
+      description: Extract assets
+      retries: 3
+      timeout: 3600
+      onFailure: 'abortWorkflow'
+    - externalId: 'icapi_timeseries_extractor'
+      type: 'function'
+      parameters:
+        function:
+          externalId: 'icapi_timeseries_extractor'
+          data: {}
+        isAsyncComplete: false
+      name: 'Time Series Extractor'
+      description: Extract tags
+      retries: 3
+      timeout: 3600
+      onFailure: 'abortWorkflow'
+    - externalId: 'icapi_datapoints_extractor'
+      type: 'function'
+      parameters:
+        function:
+          externalId: 'icapi_datapoints_extractor'
+          data: {}
+      name: 'Data Points Extractor'
+      description: Populate data
+      retries: 3
+      timeout: 3600
+      onFailure: 'skipTask'
+      dependsOn:
+        - externalId: 'icapi_timeseries_extractor'
+    - externalId: 'icapi_ts_assets_contextualization'
+      type: 'transformation'
+      parameters:
+        transformation:
+          externalId: 'icapi_ts_assets_contextualization'
+          concurrencyPolicy: fail
+      name: 'Contextualize Assets'
+      description: Maps tags to assets
+      retries: 3
+      timeout: 3600
+      onFailure: 'skipTask'
+      dependsOn:
+        - externalId: 'icapi_timeseries_extractor'
+    - externalId: 'oee_timeseries'
+      type: 'function'
+      parameters:
+        function:
+          externalId: 'oee_timeseries'
+          data: {}
+      name: 'OEE Function'
+      description: Calculate OEE
+      retries: 3
+      timeout: 3600
+      onFailure: 'skipTask'
+      dependsOn:
+        - externalId: 'icapi_datapoints_extractor'
