@@ -36,14 +36,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      - name: Install cdf-tk
-        run: pip install cognite-toolkit==0.3.0b2
-      - name: Show cognite-sdk version
-        run: pip show cognite-sdk
+      - name: Install poetry
+        run: curl -sSL https://install.python-poetry.org | python3 -
+      - name: Install dependencies using poetry.lock
+        run: poetry install --no-root
       - name: "Build the templates"
-        run: cdf-tk build --build-dir=./build --env=test ice-cream-dataops
+        run: poetry run cdf-tk build --build-dir=./build --env=test ice-cream-dataops
       - name: "Deploy"
         run: echo "Deploying to ${CDF_PROJECT} with ${CDF_CLUSTER}"
       - name: "Deploy the templates"
         run: |
-          cdf-tk deploy --env=test
+          poetry run cdf-tk deploy --env=test
