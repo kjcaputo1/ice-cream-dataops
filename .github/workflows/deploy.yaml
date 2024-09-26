@@ -41,7 +41,7 @@ jobs:
       - name: Install dependencies using poetry.lock
         run: poetry install --no-root
       - name: "Build the templates"
-        run: poetry run cdf-tk build --build-dir=./build --env=test ice-cream-dataops
+        run: poetry run cdf-tk build --build-dir=./build --env=test
       - name: "Deploy"
         run: echo "Deploying to ${CDF_PROJECT} with ${CDF_CLUSTER}"
       - name: "Deploy the templates"
