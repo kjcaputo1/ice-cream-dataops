@@ -38,6 +38,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Install cdf-tk
         run: pip install cognite-toolkit==0.3.0b2
+        run: pip show cognite-sdk
       - name: "Build the templates"
         run: cdf-tk build --build-dir=./build --env=test ice-cream-dataops
       - name: "Deploy"
