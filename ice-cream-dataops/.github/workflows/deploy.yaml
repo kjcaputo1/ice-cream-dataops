@@ -1,0 +1,47 @@
+name: Deploy modules to test project
+on:
+  push:
+    branches:
+      - main # run when this branch changes (following a Pull Request)
+    paths:
+      - .github/workflows/deploy.yaml
+      - ice-cream-dataops/modules/** # run when changes in modules
+      - ice-cream-dataops/config.test.yaml # run when changes in config.test.yaml
+  # Allow manual triggering of the workflow
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+jobs:
+  build-modules:
+    runs-on: ubuntu-latest
+    environment: test
+    env:
+        CDF_CLUSTER: ${{ secrets.CDF_CLUSTER }}
+        CDF_PROJECT: ${{ secrets.CDF_PROJECT }}
+        IDP_CLIENT_ID: ${{ secrets.IDP_CLIENT_ID }}
+        IDP_CLIENT_SECRET: ${{ secrets.IDP_CLIENT_SECRET }}
+        IDP_TOKEN_URL: ${{ secrets.IDP_TOKEN_URL }}
+        LOGIN_FLOW: ${{secrets.LOGIN_FLOW}}
+        DATA_PIPELINE_OEE_CLIENT_ID: ${{secrets.DATA_PIPELINE_OEE_CLIENT_ID}}
+        DATA_PIPELINE_OEE_CLIENT_SECRET: ${{secrets.DATA_PIPELINE_OEE_CLIENT_SECRET}}
+        ICAPI_EXTRACTORS_CLIENT_ID: ${{secrets.ICAPI_EXTRACTORS_CLIENT_ID}}
+        ICAPI_EXTRACTORS_CLIENT_SECRET: ${{secrets.ICAPI_EXTRACTORS_CLIENT_SECRET}}
+        IDP_TENANT_ID: ${{secrets.IDP_TENANT_ID}}
+        CDF_URL: ${{secrets.CDF_URL}}
+        IDP_SCOPES: ${{secrets.IDP_SCOPES}}
+    name: Deploy
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install cdf-tk
+        run: pip install cognite-toolkit
+      - name: "Build the templates"
+        run: cdf-tk build --build-dir=./build --env=test ice-cream-dataops
+      - name: "Deploy"
+        run: echo "Deploying to ${CDF_PROJECT} with ${CDF_CLUSTER}"
+      - name: "Deploy the templates"
+        run: |
+          cdf-tk deploy --env=test
